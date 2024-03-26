@@ -54,11 +54,36 @@ app.post("/api/persons", (req, res) => {
     .catch((err) => console.log("Couldnt create new person"));
 });
 
+app.put("/api/persons/:id", (req, res, next) => {
+  const body = req.body;
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      res.json(updatedPerson);
+    })
+    .catch((err) => next(err));
+});
+
 app.get("/info", (req, res) => {
   const length = persons.length;
   const dateAcc = Date();
   res.send(`<p>Phonebooks has info for ${length} people</p> <p>${dateAcc}</p>`);
 });
+
+const errorHandler = (err, req, res, next) => {
+  console.error(err.message);
+  if (err.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
+  }
+  next(err);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 
