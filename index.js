@@ -29,7 +29,7 @@ app.delete("/api/persons/:id", (req, res) => {
   });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (!body.name)
@@ -51,18 +51,24 @@ app.post("/api/persons", (req, res) => {
     .then((savedPerson) => {
       res.json(savedPerson);
     })
-    .catch((err) => console.log("Couldnt create new person"));
+    .catch((err) =>
+      res.status(500).json({ success: false, message: err.message })
+    );
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
-  const body = req.body;
+  const { name, number } = req.body;
 
-  const person = {
-    name: body.name,
-    number: body.number,
-  };
+  // const person = {
+  //   name: body.name,
+  //   number: body.number,
+  // };
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: "query" }
+  )
     .then((updatedPerson) => {
       res.json(updatedPerson);
     })
